@@ -14,7 +14,7 @@ api = Blueprint('api', __name__)
 # Allow CORS requests to this API
 CORS(api)
 
-bcrpt = Bcrypt()
+bcrypt = Bcrypt()
 
 
 @api.route('/hello', methods=['POST', 'GET'])
@@ -58,7 +58,7 @@ def login_user():
     user = User.query.filter_by(email=data_request['email']).first()
     access_token = create_access_token(identity=str(user.id))
 
-    if user and bcrpt.check_password_hash(user.password, data_request['password']):
+    if user and bcrypt.check_password_hash(user.password, data_request['password']):
         return jsonify({
             "token": access_token,
             "user": {
@@ -80,7 +80,7 @@ def create_user():
     new_user = User(
         username=data_request['username'],
         email=data_request['email'],
-        password=bcrpt.generate_password_hash(
+        password=bcrypt.generate_password_hash(
             data_request['password']).decode('utf-8')
     )
 
@@ -91,9 +91,24 @@ def create_user():
     except Exception as e:
         db.session.rollback()
         return jsonify({"message": "An error occurred while creating the user", "error": str(e)}), 500
+    
+    
+    
 
 @api.route('/users', methods=['GET'])
+@jwt_required()
+def get_users():
+    users = User.query.all()
+    return jsonify([user.serialize() for user in users]), 200
 
 def get_users():
     users = User.query.all()
     return jsonify([user.serialize() for user in users]), 200
+
+
+#Verificar si el token es crorrecto 
+@api.route('/verify-token', methods=['GET'])
+@jwt_required()
+def verify_token():
+    user_id = get_jwt_identity()
+    return jsonify({"message": "Token válido", "user_id": user_id}), 200
