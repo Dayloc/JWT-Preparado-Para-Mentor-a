@@ -63,7 +63,8 @@ def login_user():
             "token": access_token,
             "user": {
                 "id": user.id,
-                "email": user.email
+                "email": user.email,
+                "username": user.username
             }}), 200
     else:
         return jsonify({"message": "Invalid email or password"}), 401
@@ -73,10 +74,11 @@ def login_user():
 def create_user():
     data_request = request.get_json()
 
-    if not 'email' in data_request or not 'password' in data_request:
-        return jsonify({"message": "Email and password are required"}), 400
+    if not 'email' in data_request or not 'password' in data_request or not 'username' in data_request:
+        return jsonify({"message": "Email , password and username are required"}), 400
 
     new_user = User(
+        username=data_request['username'],
         email=data_request['email'],
         password=bcrpt.generate_password_hash(
             data_request['password']).decode('utf-8')
@@ -89,3 +91,9 @@ def create_user():
     except Exception as e:
         db.session.rollback()
         return jsonify({"message": "An error occurred while creating the user", "error": str(e)}), 500
+
+@api.route('/users', methods=['GET'])
+
+def get_users():
+    users = User.query.all()
+    return jsonify([user.serialize() for user in users]), 200

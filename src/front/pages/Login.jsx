@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await fetch('https://redesigned-sniffle-6996j49wxrqqc5v6x-3001.app.github.dev/api/login', {
+      const response = await fetch('https://redesigned-sniffle-6996j49wxrqqc5v6x-3001.app.github.dev/api/user/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -22,9 +24,7 @@ function Login() {
       const data = await response.json();
       localStorage.setItem('token', data.token);
       console.log('Usuario autenticado:', data.user);
-
-      // Aquí puedes redirigir con React Router si quieres
-      // Por ejemplo: navigate('/dashboard')
+      navigate('/dashboard'); // redirige si el login es exitoso
 
     } catch (err) {
       setError(err.message);
@@ -32,29 +32,46 @@ function Login() {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: 'auto' }}>
-      <h2>Iniciar sesión</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Correo"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        /><br />
+    <div className="container d-flex justify-content-center align-items-center min-vh-100">
+      <div className="card p-4 shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
+        <h3 className="text-center mb-4">Iniciar sesión</h3>
 
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        /><br />
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label htmlFor="email" className="form-label">Correo electrónico</label>
+            <input
+              type="email"
+              className="form-control"
+              id="email"
+              placeholder="correo@ejemplo.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-        <button type="submit">Entrar</button>
-      </form>
+          <div className="mb-3">
+            <label htmlFor="password" className="form-label">Contraseña</label>
+            <input
+              type="password"
+              className="form-control"
+              id="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+          <button type="submit" className="btn btn-primary w-100">Entrar</button>
+        </form>
+
+        {error && <div className="alert alert-danger mt-3 text-center">{error}</div>}
+
+        <p className="mt-3 text-center">
+          ¿No tienes cuenta? <a href="/register">Regístrate</a>
+        </p>
+      </div>
     </div>
   );
 }
